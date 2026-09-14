@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FitTrack - Objectif 85kg</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --accent: #10b981;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-main); line-height: 1.6; padding-bottom: 2rem; }
+        
+        #login-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-color); display: flex; justify-content: center; align-items: center;
+            z-index: 1000; flex-direction: column; gap: 1rem;
+        }
+        #login-overlay input {
+            padding: 0.8rem; border-radius: 8px; border: 1px solid var(--text-muted);
+            background: var(--card-bg); color: white; outline: none; font-size: 1rem; text-align: center;
+            width: 80%; max-width: 300px;
+        }
+        
+        #app-content { display: none; max-width: 800px; margin: 0 auto; padding: 1.5rem; }
+        header { text-align: center; margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid #334155; }
+        h1 { color: var(--accent); font-size: 2rem; margin-bottom: 0.5rem; }
+        h2 { margin: 1.5rem 0 1rem; font-size: 1.25rem; color: #e2e8f0; }
+        
+        .card { background: var(--card-bg); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+        
+        .workout-day {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 1rem; border-bottom: 1px solid #334155;
+        }
+        .workout-day:last-child { border-bottom: none; }
+        .day-info h3 { font-size: 1.1rem; margin-bottom: 0.2rem; }
+        .day-info p { font-size: 0.85rem; color: var(--text-muted); }
+        
+        .checkbox-wrapper input[type="checkbox"] {
+            width: 24px; height: 24px; accent-color: var(--accent); cursor: pointer;
+        }
+
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; margin-bottom: 1rem; }
+        .input-group { display: flex; flex-direction: column; gap: 0.4rem; }
+        .input-group label { font-size: 0.85rem; color: var(--text-muted); }
+        .input-group input {
+            padding: 0.7rem; border-radius: 6px; border: 1px solid #334155; background: #0f172a; color: white; outline: none;
+        }
+        .input-group input:focus { border-color: var(--accent); }
+        
+        button {
+            background: var(--accent); color: #000; font-weight: 600; border: none;
+            padding: 0.8rem 1.5rem; border-radius: 8px; cursor: pointer; transition: 0.2s;
+            width: 100%; font-size: 1rem;
+        }
+        button:hover { opacity: 0.9; transform: translateY(-1px); }
+        
+        .export-btn { background: #3b82f6; margin-top: 1rem; color: white;}
+    </style>
+</head>
+<body>
+
+    <div id="login-overlay">
+        <h2 style="color: var(--accent);">Accès Sécurisé</h2>
+        <input type="password" id="pwd-input" placeholder="Mot de passe...">
+        <button onclick="checkPassword()" style="width: auto;">Déverrouiller</button>
+        <p id="login-error" style="color: #ef4444; font-size: 0.9rem; display: none;">Mot de passe incorrect</p>
+    </div>
+
+    <div id="app-content">
+        <header>
+            <h1>FitTrack</h1>
+            <p style="color: var(--text-muted);">Objectif 85kg - Suivi Hebdomadaire & Mensurations</p>
+        </header>
+
+        <section class="card">
+            <h2>📅 Programme de la Semaine</h2>
+            <div id="workout-list">
+                <!-- Généré par JS -->
+            </div>
+            <button onclick="resetWeek()" style="margin-top: 1.5rem; background: #334155; color: white;">Réinitialiser la semaine</button>
+        </section>
+
+        <section class="card">
+            <h2>📊 Nouvelles Mensurations</h2>
+            <div class="form-grid">
+                <div class="input-group">
+                    <label>Date</label>
+                    <input type="date" id="m-date">
+                </div>
+                <div class="input-group">
+                    <label>Poids (kg)</label>
+                    <input type="number" step="0.1" id="m-poids" placeholder="ex: 92.0">
+                </div>
+                <div class="input-group">
+                    <label>Graisse corporelle (%)</label>
+                    <input type="number" step="0.1" id="m-graisse" placeholder="ex: 26.7">
+                </div>
+                <div class="input-group">
+                    <label>Eau corporelle (kg)</label>
+                    <input type="number" step="0.1" id="m-eau" placeholder="ex: 47.2">
+                </div>
+                <div class="input-group">
+                    <label>Masse protéique (kg)</label>
+                    <input type="number" step="0.1" id="m-prot" placeholder="ex: 15.9">
+                </div>
+            </div>
+            <button onclick="saveMeasurement()">Enregistrer les mensurations</button>
+        </section>
+
+        <section class="card">
+            <h2>📥 Exporter les données</h2>
+            <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1rem;">
+                Génère un fichier CSV compatible Excel.
+            </p>
+            <button class="export-btn" onclick="exportToCSV()">Télécharger l'historique (.csv)</button>
+        </section>
+    </div>
+
+    <script>
+        // Mot de passe fort défini ici
+        const SECRET_PWD = "FitTrack!2026@Secure";
+        
+        function checkPassword() {
+            const input = document.getElementById('pwd-input').value;
+            if (input === SECRET_PWD) {
+                document.getElementById('login-overlay').style.display = 'none';
+                document.getElementById('app-content').style.display = 'block';
+                sessionStorage.setItem('auth', 'true');
+            } else {
+                document.getElementById('login-error').style.display = 'block';
+            }
+        }
+
+        // Maintien de la connexion
+        if(sessionStorage.getItem('auth') === 'true') {
+            document.getElementById('login-overlay').style.display = 'none';
+            document.getElementById('app-content').style.display = 'block';
+        }
+
+        document.getElementById('m-date').valueAsDate = new Date();
+
+        const workouts = [
+            { id: 'mon', day: 'Lundi', title: 'Renforcement Full Body', desc: 'Haltères, Élastiques, Tapis' },
+            { id: 'tue', day: 'Mardi', title: 'Cardio Faible Impact', desc: 'Vélo de route (45-60min)' },
+            { id: 'wed', day: 'Mercredi', title: 'Récupération Active', desc: 'Étirements sur tapis' },
+            { id: 'thu', day: 'Jeudi', title: 'Renfo Haut du Corps', desc: 'Épaules, Dos, Bras, Gainage' },
+            { id: 'fri', day: 'Vendredi', title: 'Cardio Fractionné', desc: 'Course KIPRUN (Alternance marche/course)' },
+            { id: 'sat', day: 'Samedi', title: 'Sortie Longue', desc: 'Vélo de route (1h30-2h)' },
+            { id: 'sun', day: 'Dimanche', title: 'Repos Total', desc: 'Préparation des repas' }
+        ];
+
+        function renderWorkouts() {
+            const container = document.getElementById('workout-list');
+            container.innerHTML = '';
+            const savedState = JSON.parse(localStorage.getItem('fittrack_week')) || {};
+
+            workouts.forEach(w => {
+                const isChecked = savedState[w.id] ? 'checked' : '';
+                const html = `
+                    <div class="workout-day">
+                        <div class="day-info">
+                            <h3 style="color: ${isChecked ? 'var(--text-muted)' : '#fff'}; text-decoration: ${isChecked ? 'line-through' : 'none'}">${w.day} - ${w.title}</h3>
+                            <p>${w.desc}</p>
+                        </div>
+                        <div class="checkbox-wrapper">
+                            <input type="checkbox" id="${w.id}" ${isChecked} onchange="toggleWorkout('${w.id}', this.checked)">
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += html;
+            });
+        }
+
+        function toggleWorkout(id, state) {
+            const savedState = JSON.parse(localStorage.getItem('fittrack_week')) || {};
+            savedState[id] = state;
+            localStorage.setItem('fittrack_week', JSON.stringify(savedState));
+            
+            if (state) {
+                const history = JSON.parse(localStorage.getItem('fittrack_history')) || [];
+                const workoutObj = workouts.find(x => x.id === id);
+                history.push({
+                    date: new Date().toISOString().split('T')[0],
+                    type: 'Entraînement',
+                    details: workoutObj.day + ' - ' + workoutObj.title
+                });
+                localStorage.setItem('fittrack_history', JSON.stringify(history));
+            }
+            renderWorkouts();
+        }
+
+        function resetWeek() {
+            if(confirm("Veux-tu décocher tous les jours de la semaine ?")) {
+                localStorage.removeItem('fittrack_week');
+                renderWorkouts();
+            }
+        }
+
+        function saveMeasurement() {
+            const date = document.getElementById('m-date').value;
+            const poids = document.getElementById('m-poids').value;
+            const graisse = document.getElementById('m-graisse').value;
+            const eau = document.getElementById('m-eau').value;
+            const prot = document.getElementById('m-prot').value;
+
+            if (!poids) return alert("Le poids est obligatoire !");
+
+            const history = JSON.parse(localStorage.getItem('fittrack_history')) || [];
+            history.push({
+                date: date,
+                type: 'Mensuration',
+                details: `Poids: ${poids}kg | Graisse: ${graisse}% | Eau: ${eau}kg | Protéines: ${prot}kg`
+            });
+            
+            localStorage.setItem('fittrack_history', JSON.stringify(history));
+            alert("Mensurations sauvegardées avec succès !");
+            
+            document.getElementById('m-poids').value = '';
+            document.getElementById('m-graisse').value = '';
+            document.getElementById('m-eau').value = '';
+            document.getElementById('m-prot').value = '';
+        }
+
+        function exportToCSV() {
+            const history = JSON.parse(localStorage.getItem('fittrack_history')) || [];
+            if (history.length === 0) {
+                alert("Aucune donnée à exporter pour le moment.");
+                return;
+            }
+
+            let csvContent = "Date,Type d'enregistrement,Détails\n";
+            history.forEach(row => {
+                const safeDetails = `"${row.details.replace(/"/g, '""')}"`;
+                csvContent += `${row.date},${row.type},${safeDetails}\n`;
+            });
+
+            const blob = new Blob(["\uFEFF"+csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            
+            link.setAttribute("href", url);
+            link.setAttribute("download", `FitTrack_Export_${new Date().toISOString().split('T')[0]}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        renderWorkouts();
+    </script>
+</body>
+</html>
